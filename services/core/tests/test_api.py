@@ -27,26 +27,25 @@ def test_health_and_local_chat(monkeypatch, tmp_path):
         assert history["messages"][0]["content"] == "Hello TIGER"
 
 
-def test_cloud_fallback_requires_request_opt_in(monkeypatch, tmp_path):
+def test_fully_local_mode_never_falls_back_to_cloud(monkeypatch, tmp_path):
     monkeypatch.setattr(main, "DB_PATH", tmp_path / "test.sqlite3")
-    monkeypatch.setattr(main, "CLOUD_ENABLED", True)
 
     async def fail_local(messages):
         raise RuntimeError("local model offline")
 
-    async def should_not_run(messages):
-        raise AssertionError("cloud fallback must not run without request consent")
-
     monkeypatch.setattr(main, "ollama_chat", fail_local)
-    monkeypatch.setattr(main, "online_chat", should_not_run)
 
     with TestClient(main.app) as client:
         response = client.post(
             "/api/chat",
-            json={"message": "private message", "allow_cloud_fallback": False},
+            json={"message": "private message", "allow_cloud_fallback": True},
         )
         assert response.status_code == 503
-        assert "No data was sent online" in response.json()["detail"]
+        assert "fully-local operation" in response.json()["detail"]
+        assert "no prompt" in response.json()["detail"]
+        provider_status = client.get("/api/providers").json()
+        assert provider_status["online_fallback"]["enabled"] is False
+        assert provider_status["online_fallback"]["configured"] is False
 
 
 def test_user_memory_crud_and_retrieval_in_chat(monkeypatch, tmp_path):
@@ -155,3 +154,33 @@ def test_agent_run_is_single_call_by_default(monkeypatch, tmp_path):
         assert response.status_code == 200
         assert response.json()["stages"][0]["agent"] == "organizer"
         assert len(calls) == 1
+
+
+def test_conversation_search_export_and_delete_all(monkeypatch, tmp_path):
+    monkeypatch.setattr(main, "DB_PATH", tmp_path / "test.sqlite3")
+
+    async def fake_ollama_chat(messages):
+        return "A local reply"
+
+    monkeypatch.setattr(main, "ollama_chat", fake_ollama_chat)
+
+    with TestClient(main.app) as client:
+        chat = client.post(
+            "/api/chat",
+            json={"message": "Remember my robotics project", "conversation_id": "robotics"},
+        )
+        assert chat.status_code == 200
+        search = client.get("/api/conversations", params={"q": "robotics"})
+        assert search.status_code == 200
+        assert search.json()["conversations"][0]["conversation_id"] == "robotics"
+
+        client.post("/api/memories", json={"content": "I am building a robotics project"})
+        exported = client.get("/api/data/export").json()
+        assert exported["mode"] == "fully-local"
+        assert len(exported["messages"]) == 2
+        assert len(exported["memories"]) == 1
+
+        deleted = client.delete("/api/data")
+        assert deleted.status_code == 200
+        assert client.get("/api/conversations").json()["conversations"] == []
+        assert client.get("/api/memories").json()["memories"] == []
