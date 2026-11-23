@@ -17,7 +17,7 @@ TIGER uses one shared React interface with two installable shells:
 2. Download TIGER-Setup-*.exe for Windows or app-debug.apk for Android.
 3. On Windows, install Ollama and pull qwen3:8b, then install and launch TIGER.
 4. On Android, install the APK (Android may ask you to allow installation from your browser/file manager). Keep the phone and PC on the same trusted Wi-Fi.
-5. Start the Windows TIGER launcher and answer y to the Android pairing prompt. Copy the PC's LAN IP address and the displayed pairing token into the mobile app's Device connection section.
+5. Launch the Windows desktop app and choose Enable Android pairing when prompted. Copy the displayed Core URL and random pairing token into the mobile app's Device connection section.
 
 To publish a release, push a version tag such as v0.1.0. GitHub Actions builds both installable packages and attaches them to a GitHub Release. A manual workflow run also uploads build artifacts for testing.
 
