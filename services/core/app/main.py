@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import re
 import sqlite3
@@ -358,11 +357,13 @@ async def delete_memory(memory_id: str) -> dict:
 async def run_agent(request: AgentRequest) -> dict:
     run_id = str(uuid.uuid4())
     selected = request.agent
-    stages = ["planner", selected, "reviewer"] if request.mode == "team" else [selected]
-    # Keep the team compact and deterministic; each stage is a model call,
-    # with no tools, shell, browser, filesystem, or external side effects.
-    if request.mode == "team" and selected == "planner":
-        stages = ["planner", "researcher", "reviewer"]
+    # Keep the team compact and deterministic: planner -> specialist -> reviewer.
+    # If planner or reviewer is selected as the specialist, avoid duplicate stages.
+    if request.mode == "team":
+        specialist = selected if selected not in ("planner", "reviewer") else "researcher"
+        stages = ["planner", specialist, "reviewer"]
+    else:
+        stages = [selected]
 
     used = relevant_memories(request.objective) if request.use_saved_memories else []
     context = memory_context(used)
