@@ -37,7 +37,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .content{width:min(970px,91%);margin:0 auto;padding:43px 0 34px}
 .welcome-row{display:flex;justify-content:space-between;align-items:center;position:relative;min-height:173px}
 .eyebrow{display:flex;align-items:center;gap:7px;color:#80b5ef;font-size:9px;letter-spacing:2px;font-weight:700}
-h1{font:800 clamp(30px,4vw,45px)/1.13 Manrope;letter-spacing:-1.8px;margin:14px 0 10px;color:#f1f5fc}
+h1{font:800 clamp(30px,4vw,45px)/1.13 Arial,Helvetica,sans-serif;letter-spacing:-1.8px;margin:14px 0 10px;color:#f1f5fc}
 h1 em{font-style:normal;color:#83b8f5}
 .subtitle{color:#8a98ae;font-size:13px;margin:0}
 .orb-wrap{width:155px;height:155px;position:relative;display:grid;place-items:center;margin-right:35px}
