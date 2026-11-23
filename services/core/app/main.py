@@ -9,13 +9,15 @@ from pathlib import Path
 from typing import Literal
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
 
 APP_NAME = "TIGER Local Core"
 OLLAMA_URL = os.getenv("TIGER_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 LOCAL_MODEL = os.getenv("TIGER_LOCAL_MODEL", "qwen3:8b")
+API_TOKEN = os.getenv("TIGER_API_TOKEN", "")
 DB_PATH = Path(os.getenv("TIGER_DB_PATH") or (Path.home() / ".tiger" / "tiger.sqlite3"))
 
 AGENT_PROMPTS = {
@@ -86,6 +88,25 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title=APP_NAME, version="0.2.0", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def protect_lan_clients(request: Request, call_next):
+    """Remote/LAN access is denied unless the owner configured a pairing token."""
+    client_host = request.client.host if request.client else ""
+    is_loopback = client_host in {"127.0.0.1", "::1", "localhost", "testclient"}
+    if not is_loopback:
+        supplied = request.headers.get("x-tiger-token", "")
+        if not API_TOKEN or not supplied or not __import__("hmac").compare_digest(supplied, API_TOKEN):
+            from starlette.responses import JSONResponse
+            return JSONResponse(status_code=401, content={"detail": "TIGER phone access requires a valid local pairing token"})
+    return await call_next(request)
 
 
 class ChatRequest(BaseModel):
