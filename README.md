@@ -72,11 +72,32 @@ tests/                 Unit, integration, safety and offline tests
 - Secrets never enter prompts, logs, frontend state or repository files.
 - No covert persistence, credential harvesting, keylogging, surveillance or bypassing OS permissions.
 
-## Development
+## Current implementation
 
-The first implementation milestone is a working local chat + health check + SQLite conversation history, with tests that run without internet or API keys. Subsequent milestones add memory, tool approvals, agents, voice and desktop packaging.
+The repository now contains an initial FastAPI core with Ollama chat, provider health/model discovery, SQLite conversation history, a React browser interface, opt-in-gated generic online fallback, starter tests and a GitHub Actions workflow. This first milestone has been scaffolded but still needs a successful CI run and local manual verification before it should be treated as release-ready.
 
-See [ROADMAP.md](ROADMAP.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md), [SECURITY.md](SECURITY.md), and [CONTRIBUTING.md](CONTRIBUTING.md).
+### Run locally
+
+1. Install Python 3.11+ and [Ollama](https://ollama.com/download), then pull a local model: `ollama pull qwen3:8b`.
+2. In one terminal, run the backend:
+   ```powershell
+   cd services/core
+   py -m venv .venv
+   .venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   uvicorn app.main:app --host 127.0.0.1 --port 8765
+   ```
+3. In another terminal, run the web UI:
+   ```powershell
+   cd apps/web
+   npm install
+   npm run dev
+   ```
+4. Open http://127.0.0.1:5173. Backend API documentation is at http://127.0.0.1:8765/docs.
+
+For Linux/macOS commands, optional online-provider configuration, API details and limitations, see [services/core/README.md](services/core/README.md).
+
+See [ROADMAP.md](ROADMAP.md), [architecture](docs/ARCHITECTURE.md), [reference and license notes](docs/REFERENCES.md), [SECURITY.md](SECURITY.md), and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Inspirations and attribution
 
