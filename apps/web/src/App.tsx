@@ -9,6 +9,7 @@ type Message = { role: "user" | "assistant"; content: string };
 type Memory = { id: string; content: string; category: string; created_at: string };
 type AgentStage = { agent: string; result: string };
 type AgentResult = { run_id: string; result: string; stages: AgentStage[]; provider: string; model: string };
+type Conversation = { conversation_id: string; updated_at: string; message_count: number; last_user_message: string | null };
 type ProviderInfo = {
   local?: { healthy: boolean; selected_model: string; available_models: string[]; error?: string | null };
   online_fallback?: { enabled: boolean; configured: boolean; model?: string | null };
@@ -47,6 +48,9 @@ export default function App() {
   const [agentBusy, setAgentBusy] = useState(false);
   const [agentResult, setAgentResult] = useState<AgentResult | null>(null);
   const [agentError, setAgentError] = useState("");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversationQuery, setConversationQuery] = useState("");
+  const [dataBusy, setDataBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -65,6 +69,8 @@ export default function App() {
       }
     };
     void refresh();
+    void refreshMemories();
+    void refreshConversations("");
     const timer = window.setInterval(refresh, 15000);
     return () => { active = false; window.clearInterval(timer); };
   }, []);
@@ -80,6 +86,50 @@ export default function App() {
     }
   };
 
+  const refreshConversations = async (query = conversationQuery) => {
+    try {
+      const response = await fetch("/api/conversations?q=" + encodeURIComponent(query));
+      if (!response.ok) throw new Error("Could not load conversations");
+      const data = await response.json();
+      setConversations(data.conversations || []);
+    } catch { setConversations([]); }
+  };
+
+  const loadConversation = async (id: string) => {
+    try {
+      const response = await fetch("/api/conversations/" + encodeURIComponent(id));
+      if (!response.ok) throw new Error("Could not load conversation");
+      const data = await response.json();
+      setConversationId(id);
+      window.localStorage.setItem("tiger.conversation_id", id);
+      setMessages(data.messages.map((item: Message) => ({ role: item.role, content: item.content })));
+    } catch (error) { setAgentError(error instanceof Error ? error.message : "Conversation load failed"); }
+  };
+
+  const exportData = async () => {
+    setDataBusy(true);
+    try {
+      const response = await fetch("/api/data/export");
+      if (!response.ok) throw new Error("Export failed");
+      const data = await response.json();
+      const url = window.URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+      const link = document.createElement("a"); link.href = url; link.download = "tiger-data-export.json"; link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) { setAgentError(error instanceof Error ? error.message : "Export failed"); }
+    finally { setDataBusy(false); }
+  };
+
+  const deleteAllData = async () => {
+    if (!window.confirm("Permanently delete all TIGER conversations, memories and agent history from this device? This cannot be undone.")) return;
+    setDataBusy(true);
+    try {
+      const response = await fetch("/api/data", { method: "DELETE" });
+      if (!response.ok) throw new Error("Data deletion failed");
+      setMessages([{ role: "assistant", content: "Local TIGER data has been deleted." }]);
+      setMemories([]); setConversations([]); setAgentResult(null);
+    } catch (error) { setAgentError(error instanceof Error ? error.message : "Data deletion failed"); }
+    finally { setDataBusy(false); }
+  };
   const saveMemory = async (event: FormEvent) => {
     event.preventDefault();
     const content = memoryDraft.trim();
@@ -281,6 +331,13 @@ export default function App() {
             <div className="capability"><Mic size={18} /><b>Natural voice</b><span>Planned for a later milestone</span></div>
           </div>
 
+          <section className="feature-panel">
+            <div className="feature-title"><div><span className="panel-icon"><MessageCircle size={16} /></span><b>Conversation history</b></div><span className="feature-tag">ON THIS DEVICE</span></div>
+            <p className="feature-description">Search and reopen conversations stored in your local TIGER database.</p>
+            <div className="history-search"><input value={conversationQuery} onChange={event => { setConversationQuery(event.target.value); void refreshConversations(event.target.value); }} placeholder="Search conversation text…" /></div>
+            <div className="memory-list">{conversations.length === 0 ? <div className="empty-memory">No saved conversations found.</div> : conversations.map(item => <button className="history-item" type="button" key={item.conversation_id} onClick={() => void loadConversation(item.conversation_id)}><span>{item.message_count} messages</span><b>{item.last_user_message || "Conversation"}</b><small>{item.conversation_id === conversationId ? "CURRENT" : item.updated_at}</small></button>)}</div>
+            <div className="data-actions"><button type="button" className="send-button" disabled={dataBusy} onClick={() => void exportData()}>Export my data</button><button type="button" className="danger-button" disabled={dataBusy} onClick={() => void deleteAllData()}>Delete all local data</button></div>
+          </section>
           <section className="feature-panel">
             <div className="feature-title"><div><span className="panel-icon"><Workflow size={16} /></span><b>Agent studio</b></div><span className="feature-tag">MODEL-POWERED WORKFLOW</span></div>
             <p className="feature-description">Delegate a task to one specialist or run a bounded three-stage team: planner → specialist → reviewer. Agents currently reason and draft; they do not operate your computer or claim to execute external actions.</p>
