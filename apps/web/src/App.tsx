@@ -34,7 +34,7 @@ const apiFetch = (path: string, init: RequestInit = {}) => {
 export default function App() {
   const [conversationId, setConversationId] = useState(newConversationId);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hello. I’m TIGER, your local-first companion. I’m ready to help you think, plan, learn and build. Your local model is the default; online fallback is never used unless you explicitly enable it." },
+    { role: "assistant", content: "Hello. I’m TIGER, your fully-local companion. I’m ready to help you think, plan, learn and build. Your prompts and memories stay with your local TIGER Core." },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -275,7 +275,7 @@ export default function App() {
         <button className="new-chat" onClick={startNewChat}><Plus size={17} /> New conversation</button>
         <div className="nav-label">WORKSPACE</div>
         <div className="nav-item selected"><MessageCircle size={17} /> Companion <span className="nav-dot" /></div>
-        <div className="nav-item muted"><Workflow size={17} /> Agent team <small>PLANNED</small></div>
+        <div className="nav-item"><Workflow size={17} /> Agent studio</div>
         <div className="nav-item muted"><FolderOpen size={17} /> Knowledge <small>PLANNED</small></div>
         <div className="nav-item muted"><Activity size={17} /> Tasks & routines <small>PLANNED</small></div>
         <div className="nav-spacer" />
