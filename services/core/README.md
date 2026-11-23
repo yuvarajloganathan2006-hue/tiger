@@ -1,6 +1,6 @@
 # TIGER Core API — first runnable milestone
 
-This service provides local Ollama chat, provider diagnostics, SQLite conversation history, user-managed memories, and a bounded text-only agent workflow. It is a foundation, not the finished desktop companion or autonomous computer-control runtime.
+This service provides strictly local Ollama chat, provider diagnostics, SQLite conversation history, user-managed memories, conversation search, data export/deletion, and a bounded text-only agent workflow. It is not yet the finished desktop companion or autonomous computer-control runtime.
 
 ## Requirements
 - Python 3.11+
@@ -35,18 +35,19 @@ Open http://127.0.0.1:5173. The Vite development server proxies API requests to 
 
 ## API
 - GET /health — core health
-- GET /api/providers — Ollama health and model list, plus fallback configuration status
+- GET /api/providers — Ollama health and model list; online AI is disabled
 - POST /api/chat — JSON body with message, optional conversation_id and allow_cloud_fallback
-- GET /api/conversations/{conversation_id} — locally stored messages
+- GET /api/conversations — list/search local conversations
+- GET/DELETE /api/conversations/{conversation_id} — read or delete one conversation
+- GET /api/data/export and DELETE /api/data — export or erase local user data
 - GET/POST /api/memories — list and explicitly save user-approved memories
 - PUT/DELETE /api/memories/{memory_id} — edit or delete a saved memory
 - POST /api/agents/run — run one specialist or a planner → specialist → reviewer team
 - GET /api/agents/runs — view recent agent run history
 
-## Optional online fallback
-By default, online fallback is disabled. Configure TIGER_CLOUD_FALLBACK_ENABLED=true, TIGER_CLOUD_BASE_URL, TIGER_CLOUD_MODEL and TIGER_CLOUD_API_KEY in your environment. Each request also requires allow_cloud_fallback=true. The web interface shows a consent checkbox only after a provider is configured. This is a generic OpenAI-compatible endpoint; configure a provider whose current terms and free-tier rules you have checked. Provider availability and free quotas can change.
+## Fully-local privacy behavior
 
-When fallback is allowed, the recent conversation history (up to 20 messages) is sent to the configured provider. Do not enable it for sensitive conversations.
+Ollama is the only inference provider. The backend never sends chat messages, saved memories, or agent objectives to an online AI provider. If Ollama is unavailable, requests fail with HTTP 503 and an explicit local-only error.
 
 ## Current limitations
 - No authentication; do not bind this API beyond localhost.
