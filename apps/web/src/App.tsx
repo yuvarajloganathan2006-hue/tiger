@@ -24,7 +24,7 @@ const newConversationId = () => {
 
 const apiFetch = (path: string, init: RequestInit = {}) => {
   const configuredBase = window.localStorage.getItem("tiger.api_base_url") || "";
-  const base = configuredBase.replace(/\\/+$/, "") || (window.location.protocol === "file:" ? "http://127.0.0.1:8765" : "");
+  const base = configuredBase || (window.location.protocol === "file:" ? "http://127.0.0.1:8765" : "");
   const headers = new Headers(init.headers || {});
   const token = window.localStorage.getItem("tiger.api_token") || "";
   if (token) headers.set("X-Tiger-Token", token);
@@ -339,7 +339,7 @@ export default function App() {
             <div className="device-connect-form">
               <label>Windows TIGER Core URL<input value={apiBaseUrl} onChange={event => setApiBaseUrl(event.target.value)} placeholder="http://192.168.1.10:8765" /></label>
               <label>Phone pairing token<input type="password" value={apiToken} onChange={event => setApiToken(event.target.value)} placeholder="Paste the token from your Windows PC" autoComplete="off" /></label>
-              <div className="data-actions"><button type="button" className="send-button" onClick={() => { window.localStorage.setItem("tiger.api_base_url", apiBaseUrl.trim().replace(/\\/+$/, "")); window.localStorage.setItem("tiger.api_token", apiToken.trim()); window.location.reload(); }}>Save connection</button><span className="connection-hint">Empty URL uses this device's local core</span></div>
+              <div className="data-actions"><button type="button" className="send-button" onClick={() => { window.localStorage.setItem("tiger.api_base_url", apiBaseUrl.trim()); window.localStorage.setItem("tiger.api_token", apiToken.trim()); window.location.reload(); }}>Save connection</button><span className="connection-hint">Enter the URL without a trailing slash</span></div>
             </div>
           </section>
 
