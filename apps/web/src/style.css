@@ -1,6 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-
-:root{font-family:'DM Sans',sans-serif;color:#e8edf8;background:#0a0f1c;font-synthesis:none;text-rendering:optimizeLegibility}
+:root{font-family:Arial,Helvetica,sans-serif;color:#e8edf8;background:#0a0f1c;font-synthesis:none;text-rendering:optimizeLegibility}
 *{box-sizing:border-box}
 body{margin:0;min-width:320px;min-height:100vh;background:radial-gradient(ellipse at 65% -20%,#1b2d4c 0,transparent 42%),#0a0f1c}
 button,textarea{font:inherit}
@@ -10,7 +8,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 .sidebar{width:252px;flex-shrink:0;background:rgba(9,14,26,.92);border-right:1px solid #202a3c;padding:25px 17px 17px;display:flex;flex-direction:column}
 .brand{display:flex;align-items:center;gap:11px;padding:0 9px 30px}
 .brand-mark{width:37px;height:37px;border:1px solid #4779bd66;border-radius:12px;background:linear-gradient(145deg,#214c78,#14263e);display:grid;place-items:center;color:#9ccaff;box-shadow:0 0 22px #3787d522}
-.brand strong{font:800 18px Manrope;letter-spacing:2px;display:block}
+.brand strong{font:800 18px Arial,Helvetica,sans-serif;letter-spacing:2px;display:block}
 .brand span{display:block;color:#65738d;font-size:9px;letter-spacing:2px;margin-top:2px}
 .new-chat{height:42px;border:1px solid #35557b;background:#15243a;color:#dceaff;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:13px;margin-bottom:30px}
 .new-chat:hover{background:#203957}
@@ -79,3 +77,5 @@ h1 em{font-style:normal;color:#83b8f5}
 .capability b{font-size:10px;color:#bbc8da}.capability span{grid-column:2;color:#6f7e94;font-size:9px;margin-top:4px}
 @media(max-width:760px){.sidebar{width:66px;padding:18px 9px}.brand{padding:0 4px 24px}.brand>div:nth-child(2),.new-chat,.nav-label,.nav-item:not(.selected),.nav-item.selected{font-size:0}.brand-mark{width:40px}.new-chat{padding:0;width:45px}.new-chat svg{flex-shrink:0}.nav-item.selected{justify-content:center;padding:0}.nav-item.selected svg{width:20px;height:20px}.nav-dot,.privacy-card,.profile>div:nth-child(2),.profile>svg{display:none}.profile{justify-content:center}.topbar{padding:0 15px}.content{padding-top:28px}.orb-wrap{transform:scale(.72);margin-right:-13px}.welcome-row{min-height:140px}h1{font-size:30px}.subtitle{max-width:280px;font-size:11px}.capability-grid{grid-template-columns:1fr}.capability{grid-template-columns:24px 1fr}.chat-heading small{display:none}}
 @media(max-width:440px){.status-pill{font-size:0}.status-pill svg{width:16px}.orb-wrap{display:none}.content{width:93%}.chat-heading{padding:0 12px}.messages{padding:14px 11px}.composer{margin:0 8px 8px}.composer-hints{font-size:8px}}
+
+.cloud-optin{display:flex;align-items:flex-start;gap:8px;margin:7px 2px 11px;color:#d9b77a;font-size:10px;line-height:1.5}.cloud-optin input{margin:1px 0 0;accent-color:#dba74f}
