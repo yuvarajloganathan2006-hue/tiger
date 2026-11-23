@@ -50,3 +50,14 @@ Voice is an optional adapter. Push-to-talk is the default; wake-word mode requir
 
 ## Deployment
 Backend binds to loopback only by default. No public listener, remote-control tunnel, or LAN exposure without an explicit configuration and authentication layer.
+
+
+## Implemented memory and agent MVP
+
+- User-approved memory entries are stored in SQLite and can be listed, edited and deleted through the local API.
+- Chat and agent requests can retrieve up to five relevant entries using local keyword overlap. No embedding service is required.
+- Memory is never auto-created from conversations. The user explicitly saves each memory.
+- The agent coordinator runs a bounded text-only pipeline: planner → selected specialist → reviewer. Available specialist roles are researcher, developer, reviewer, organizer, planner and general assistant.
+- Agent runs are recorded in SQLite with status, final result and provider metadata.
+- Agents have no shell, browser, filesystem, email, messaging, or desktop-control tools. They cannot perform external side effects.
+- Online fallback remains disabled by default and requires both server configuration and per-request consent. If allowed, the request, relevant saved memories and intermediate agent outputs may be sent to the configured provider.
