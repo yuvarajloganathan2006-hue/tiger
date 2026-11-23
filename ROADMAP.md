@@ -1,6 +1,6 @@
 # TIGER Roadmap
 
-Progress is not claimed until implementation, automated tests, and manual verification are complete.
+Progress is not claimed until implementation, automated tests, and manual verification are complete. The initial backend and web UI are committed; GitHub Actions passed the API tests and frontend build on 2026-11-23. End-to-end testing with Ollama on a local Windows/macOS/Linux machine remains pending.
 
 ## M0 — Project foundation
 - [x] Product principles and target architecture documented
