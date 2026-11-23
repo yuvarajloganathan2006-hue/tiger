@@ -1,0 +1,37 @@
+name: TIGER CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install core test dependencies
+        run: pip install -r services/core/requirements-dev.txt
+      - name: Run core tests
+        working-directory: services/core
+        run: pytest -q
+
+  web-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package.json
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm install
+      - name: Build web interface
+        working-directory: apps/web
+        run: npm run build
