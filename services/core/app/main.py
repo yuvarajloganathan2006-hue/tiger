@@ -190,13 +190,13 @@ def list_memories(limit: int = 100) -> list[dict]:
 
 def relevant_memories(query: str, limit: int = 5) -> list[dict]:
     # Simple local keyword overlap; no embeddings or external service required.
-    words = {w.lower() for w in re.findall(r"[\\w]{2,}", query)}
+    words = {w.lower() for w in re.findall(r"[\w]{2,}", query)}
     if not words:
         return []
     memories = list_memories(200)
     ranked = []
     for item in memories:
-        tokens = {w.lower() for w in re.findall(r"[\\w]{2,}", item["content"] + " " + item["category"])}
+        tokens = {w.lower() for w in re.findall(r"[\w]{2,}", item["content"] + " " + item["category"])}
         overlap = len(words & tokens)
         if overlap:
             ranked.append((overlap, item))
