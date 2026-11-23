@@ -74,7 +74,7 @@ tests/                 Unit, integration, safety and offline tests
 
 ## Current implementation
 
-The repository now contains an initial FastAPI core with Ollama chat, provider health/model discovery, SQLite conversation history, a React browser interface, opt-in-gated generic online fallback, starter tests and a GitHub Actions workflow. This first milestone has been scaffolded but still needs a successful CI run and local manual verification before it should be treated as release-ready.
+The repository now contains an initial FastAPI core with Ollama chat, provider health/model discovery, SQLite conversation history, a React browser interface, opt-in-gated generic online fallback, starter tests and a GitHub Actions workflow. GitHub Actions has passed the Python tests and React production build. End-to-end verification with a real local Ollama model on a developer machine is still pending, so this is an MVP foundation rather than a release-ready companion OS.
 
 ### Run locally
 
