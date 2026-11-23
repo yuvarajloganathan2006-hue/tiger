@@ -1,0 +1,36 @@
+{
+  "name": "tiger-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TIGER fully-local AI companion for Windows",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.tiger.companion",
+    "productName": "TIGER",
+    "asar": true,
+    "files": ["main.cjs", "package.json"],
+    "extraResources": [
+      { "from": "../web/dist", "to": "web-dist" },
+      { "from": "resources/bin", "to": "bin" }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "artifactName": "TIGER-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
