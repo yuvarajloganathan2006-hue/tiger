@@ -184,3 +184,16 @@ def test_conversation_search_export_and_delete_all(monkeypatch, tmp_path):
         assert deleted.status_code == 200
         assert client.get("/api/conversations").json()["conversations"] == []
         assert client.get("/api/memories").json()["memories"] == []
+
+
+def test_memory_retrieval_supports_unicode_text(monkeypatch, tmp_path):
+    monkeypatch.setattr(main, "DB_PATH", tmp_path / "test.sqlite3")
+    with TestClient(main.app) as client:
+        saved = client.post(
+            "/api/memories",
+            json={"content": "எனக்கு தமிழ் விளக்கம் வேண்டும்", "category": "learning"},
+        )
+        assert saved.status_code == 200
+        found = main.relevant_memories("தமிழ் விளக்கம்")
+        assert len(found) == 1
+        assert "தமிழ்" in found[0]["content"]
