@@ -1,8 +1,8 @@
 # TIGER — Local-First AI Companion OS
 
-TIGER is an ambitious, local-first personal AI companion and agent workspace. It is designed to run on the user's computer, prefer locally hosted models, and use explicitly configured online providers only as an optional fallback.
+TIGER is a fully-local personal AI companion and agent workspace, being built for Windows 11 first. Prompts, memories and conversation data stay on the device; the current runtime has no online AI provider route.
 
-> **Status:** Foundation / architecture scaffold. This repository is not yet a complete operating system or a fully implemented autonomous companion. Features are delivered in stages and should be marked complete only after tests and manual verification.
+> **Status:** Active MVP development. Local chat, user-managed memory, text-only agent workflows, local conversation search and personal-data export/deletion are implemented. This is not yet a finished desktop OS: voice, avatar, scheduled autonomy, document retrieval and approved computer tools remain roadmap items.
 
 ## Product principles
 
@@ -17,7 +17,7 @@ TIGER is an ambitious, local-first personal AI companion and agent workspace. It
 ## Planned capabilities
 
 1. Conversational companion with configurable tone/persona
-2. Local LLM chat and provider health/fallback routing
+2. Local LLM chat and provider health diagnostics
 3. Voice input/output with push-to-talk default and visible recording state
 4. Explicitly approved long-term memory and conversation search
 5. Multi-agent orchestration: planner, researcher, coder, reviewer, organizer
@@ -56,11 +56,11 @@ tests/                 Unit, integration, safety and offline tests
 
 ## Model routing policy
 
-1. Try configured local provider first (default endpoint: Ollama at `http://127.0.0.1:11434`).
-2. If unavailable, report local provider status clearly.
-3. Use a configured online provider only when the user enabled fallback and supplied/configured credentials or a genuinely unauthenticated endpoint.
-4. Never silently upload private prompts, files, memories or screen context to a cloud provider. Cloud routing must show what context will leave the device and allow a per-action denial.
-5. Do not describe any model/API as “free forever”; free quotas and terms can change.
+1. Ollama is the only inference provider in this fully-local build.
+2. If Ollama is unavailable, TIGER reports a local error and stops.
+3. The backend does not make online AI completion requests; request flags for older clients are ignored.
+4. Do not put secrets into prompts. The SQLite database is currently unencrypted and should be protected by your Windows account and device encryption.
+5. Local Ollama itself may download model files during setup; after the model is installed, inference can run without an internet connection.
 
 ## Safety baseline
 
@@ -74,30 +74,23 @@ tests/                 Unit, integration, safety and offline tests
 
 ## Current implementation
 
-The repository now contains an Ollama-first FastAPI core, React browser interface, SQLite chat history, user-controlled saved memories, keyword-based local memory retrieval, a bounded planner/specialist/reviewer agent workflow, agent run history, optional opt-in online fallback, automated tests and GitHub Actions CI. GitHub Actions has passed the Python tests and React production build. End-to-end verification with a real local Ollama model on a developer machine is still pending, so this is an MVP foundation rather than a release-ready companion OS.
+The current implementation includes an Ollama-only FastAPI core, React interface, SQLite chat history, user-controlled saved memories, local keyword-based memory retrieval, bounded planner/specialist/reviewer text workflows, agent run history, conversation search, conversation deletion, JSON data export and a delete-all-data endpoint. CI verifies Python API tests and the React production build. A real Ollama run on a Windows 11 machine has not yet been independently verified.
 
-### Run locally
+### Windows 11 quick setup
 
-1. Install Python 3.11+ and [Ollama](https://ollama.com/download), then pull a local model: `ollama pull qwen3:8b`.
-2. In one terminal, run the backend:
-   ```powershell
-   cd services/core
-   py -m venv .venv
-   .venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   uvicorn app.main:app --host 127.0.0.1 --port 8765
-   ```
-3. In another terminal, run the web UI:
-   ```powershell
-   cd apps/web
-   npm install
-   npm run dev
-   ```
-4. Open http://127.0.0.1:5173. Backend API documentation is at http://127.0.0.1:8765/docs.
+Install Python 3.11+, Node.js 20+ and [Ollama](https://ollama.com/download). Clone this repository, open PowerShell in its root folder, then run:
 
-For Linux/macOS commands, optional online-provider configuration, API details and limitations, see [services/core/README.md](services/core/README.md).
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\setup-windows.ps1
+.\scripts\start-tiger.ps1
+```
 
-See [ROADMAP.md](ROADMAP.md), [architecture](docs/ARCHITECTURE.md), [reference and license notes](docs/REFERENCES.md), [SECURITY.md](SECURITY.md), and [CONTRIBUTING.md](CONTRIBUTING.md).
+The setup script installs Python and Node dependencies and pulls the configured local model (default `qwen3:8b`). The launch script starts the backend and frontend bound to loopback and opens http://127.0.0.1:5173. API documentation is at http://127.0.0.1:8765/docs.
+
+To select a different model before setup or launch, set `$env:TIGER_LOCAL_MODEL = "your-ollama-model"`. Ensure it is already available with `ollama pull`.
+
+See [ROADMAP.md](ROADMAP.md), [core API details](services/core/README.md), [architecture](docs/ARCHITECTURE.md), [reference and license notes](docs/REFERENCES.md), [SECURITY.md](SECURITY.md), and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Inspirations and attribution
 
