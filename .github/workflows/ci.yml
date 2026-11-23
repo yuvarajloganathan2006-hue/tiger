@@ -17,8 +17,9 @@ jobs:
       - name: Install core test dependencies
         run: pip install -r services/core/requirements-dev.txt
       - name: Run core tests
-        working-directory: services/core
-        run: pytest -q
+        env:
+          PYTHONPATH: services/core
+        run: pytest -q services/core/tests
 
   web-build:
     runs-on: ubuntu-latest
