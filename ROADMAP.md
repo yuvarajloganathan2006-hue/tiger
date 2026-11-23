@@ -4,7 +4,7 @@ Progress is not claimed until implementation, automated tests, and manual verifi
 
 ## M0 — Project foundation
 - [x] Product principles and target architecture documented
-- [x] Local-first and cloud-consent policy documented
+- [x] Fully-local privacy policy documented
 - [x] Reference projects and license cautions documented
 - [x] CI workflow and code quality gates (Python tests + frontend production build)
 - [ ] Threat model reviewed
