@@ -31,11 +31,15 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<ProviderInfo | null>(null);
   const [allowCloudFallback, setAllowCloudFallback] = useState(false);
+  const [useSavedMemories, setUseSavedMemories] = useState(true);
   const [notice, setNotice] = useState("Checking your local AI engine…");
   const [memories, setMemories] = useState<Memory[]>([]);
   const [memoryDraft, setMemoryDraft] = useState("");
   const [memoryCategory, setMemoryCategory] = useState("general");
   const [memoryBusy, setMemoryBusy] = useState(false);
+  const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
+  const [editingMemoryContent, setEditingMemoryContent] = useState("");
+  const [editingMemoryCategory, setEditingMemoryCategory] = useState("general");
   const [agentObjective, setAgentObjective] = useState("");
   const [agentRole, setAgentRole] = useState("planner");
   const [agentMode, setAgentMode] = useState("team");
@@ -95,6 +99,30 @@ export default function App() {
       setAgentError(error instanceof Error ? error.message : "Memory save failed");
     } finally {
       setMemoryBusy(false);
+    }
+  };
+
+  const beginEditMemory = (memory: Memory) => {
+    setEditingMemoryId(memory.id);
+    setEditingMemoryContent(memory.content);
+    setEditingMemoryCategory(memory.category);
+  };
+
+  const saveMemoryEdit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!editingMemoryId || !editingMemoryContent.trim()) return;
+    try {
+      const response = await fetch("/api/memories/" + encodeURIComponent(editingMemoryId), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editingMemoryContent, category: editingMemoryCategory }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Could not update memory");
+      setEditingMemoryId(null);
+      await refreshMemories();
+    } catch (error) {
+      setAgentError(error instanceof Error ? error.message : "Memory update failed");
     }
   };
 
@@ -164,6 +192,7 @@ export default function App() {
           message: text,
           conversation_id: conversationId,
           allow_cloud_fallback: useCloudFallback,
+          use_saved_memories: useSavedMemories,
         }),
       });
       const result = await response.json();
@@ -241,6 +270,7 @@ export default function App() {
               <textarea value={input} onChange={event => setInput(event.target.value)} placeholder="Share an idea, ask a question, or describe what you want to do…" rows={2} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />
               {status?.online_fallback?.enabled && status.online_fallback.configured && (<label className="cloud-optin"><input type="checkbox" checked={allowCloudFallback} onChange={event => setAllowCloudFallback(event.target.checked)} /> Allow online fallback for this message. Recent conversation context may be sent to {status.online_fallback.model}.</label>)}
               <div className="composer-bottom"><div className="composer-hints"><LockKeyhole size={13} /> Local-first <span>·</span> <Mic size={13} /> Voice coming later</div><button className="send-button" type="submit" disabled={busy || !input.trim()}><Send size={16} /> Send</button></div>
+              <label className="memory-optin"><input type="checkbox" checked={useSavedMemories} onChange={event => setUseSavedMemories(event.target.checked)} /> Use relevant saved memories in this chat</label>
             </form>
           </div>
 
@@ -275,7 +305,12 @@ export default function App() {
               <div className="agent-controls"><label>Category<select value={memoryCategory} onChange={event => setMemoryCategory(event.target.value)}><option value="general">General</option><option value="learning">Learning</option><option value="work">Work</option><option value="preferences">Preferences</option><option value="projects">Projects</option></select></label><button className="send-button" type="submit" disabled={memoryBusy || !memoryDraft.trim()}>{memoryBusy ? "Saving…" : "Save memory"} <Plus size={14} /></button></div>
             </form>
             <div className="memory-list">
-              {memories.length === 0 ? <div className="empty-memory">No saved memories yet. Add one above when you want TIGER to remember it.</div> : memories.map(memory => <div className="memory-item" key={memory.id}><div><span>{memory.category}</span><p>{memory.content}</p></div><button type="button" onClick={() => deleteMemory(memory.id)} title="Delete this saved memory">Delete</button></div>)}
+              {memories.length === 0 ? <div className="empty-memory">No saved memories yet. Add one above when you want TIGER to remember it.</div> : memories.map(memory => <div className="memory-item" key={memory.id}>
+                {editingMemoryId === memory.id ? <form className="memory-edit-form" onSubmit={saveMemoryEdit}>
+                  <textarea value={editingMemoryContent} onChange={event => setEditingMemoryContent(event.target.value)} rows={2} />
+                  <div className="agent-controls"><label>Category<select value={editingMemoryCategory} onChange={event => setEditingMemoryCategory(event.target.value)}><option value="general">General</option><option value="learning">Learning</option><option value="work">Work</option><option value="preferences">Preferences</option><option value="projects">Projects</option></select></label><button className="send-button" type="submit">Save changes</button><button className="cancel-edit" type="button" onClick={() => setEditingMemoryId(null)}>Cancel</button></div>
+                </form> : <><div><span>{memory.category}</span><p>{memory.content}</p></div><div className="memory-actions"><button type="button" onClick={() => beginEditMemory(memory)}>Edit</button><button type="button" onClick={() => deleteMemory(memory.id)} title="Delete this saved memory">Delete</button></div></>}
+              </div>)}
             </div>
           </section>
         </section>
