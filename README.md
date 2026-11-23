@@ -1,9 +1,27 @@
 # TIGER — Local-First AI Companion OS
 
-TIGER is a fully-local personal AI companion and agent workspace, being built for Windows 11 first. Prompts, memories and conversation data stay on the device; the current runtime has no online AI provider route.
+TIGER is a fully-local personal AI companion with a Windows 11 desktop app and an Android mobile companion. The Windows PC hosts the Ollama model and local data; Android connects to that PC over a trusted local Wi-Fi network using a pairing token. No online AI provider is used.
 
 > **Status:** Active MVP development. Local chat, user-managed memory, text-only agent workflows, local conversation search and personal-data export/deletion are implemented. This is not yet a finished desktop OS: voice, avatar, scheduled autonomy, document retrieval and approved computer tools remain roadmap items.
 
+## Installable desktop and mobile apps
+
+TIGER uses one shared React interface with two installable shells:
+
+- **Windows 11 desktop:** Electron installer (TIGER-Setup-*.exe). The installer bundles the TIGER Python API as a Windows executable. Install [Ollama for Windows](https://ollama.com/download) separately and pull a model such as qwen3:8b; the model itself is not bundled in the installer.
+- **Android mobile:** Capacitor APK (app-debug.apk). This is a companion client, not a standalone on-device LLM. It connects to the Windows TIGER Core over your trusted private Wi-Fi; the AI model and database remain on the PC.
+
+### Get installers from GitHub
+
+1. Open the repository's [Releases](https://github.com/yuvarajloganathan2006-hue/tiger/releases).
+2. Download TIGER-Setup-*.exe for Windows or app-debug.apk for Android.
+3. On Windows, install Ollama and pull qwen3:8b, then install and launch TIGER.
+4. On Android, install the APK (Android may ask you to allow installation from your browser/file manager). Keep the phone and PC on the same trusted Wi-Fi.
+5. Start the Windows TIGER launcher and answer y to the Android pairing prompt. Copy the PC's LAN IP address and the displayed pairing token into the mobile app's Device connection section.
+
+To publish a release, push a version tag such as v0.1.0. GitHub Actions builds both installable packages and attaches them to a GitHub Release. A manual workflow run also uploads build artifacts for testing.
+
+**Important security note:** Android pairing currently uses HTTP on the local network with a long random token. Use only a trusted private Wi-Fi network; do not port-forward the TIGER API or use this pairing over public Wi-Fi. The APK is debug-signed for direct testing and is not yet a Play Store production release. The Windows installer is currently unsigned, so Windows SmartScreen may show a publisher warning.
 ## Product principles
 
 - **Local-first:** Ollama / OpenAI-compatible local endpoints are preferred. Offline mode must remain usable for local features.
@@ -30,7 +48,7 @@ TIGER is a fully-local personal AI companion and agent workspace, being built fo
 
 ## Architecture direction
 
-- **Desktop shell:** Tauri or Electron (choose after platform prototype)
+- **Desktop shell:** Electron for the Windows desktop package; Capacitor for Android
 - **Backend:** Python + FastAPI (local service)
 - **Agent orchestration:** LangGraph or a small typed internal state machine; avoid coupling the core to one framework
 - **Model access:** OpenAI-compatible adapter for Ollama / LM Studio / llama.cpp plus provider adapters
@@ -42,8 +60,8 @@ TIGER is a fully-local personal AI companion and agent workspace, being built fo
 ## Repository layout (target)
 
 ```text
-apps/desktop/          Desktop UI and shell
-apps/web/              Optional browser UI
+apps/desktop/          Electron Windows desktop shell
+apps/web/              Shared React UI + Capacitor Android shell
 services/core/         FastAPI app, sessions, settings, health
 packages/agents/       Coordinator and specialist agents
 packages/models/       Local and online model adapters
