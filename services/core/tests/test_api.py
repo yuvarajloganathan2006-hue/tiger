@@ -197,3 +197,22 @@ def test_memory_retrieval_supports_unicode_text(monkeypatch, tmp_path):
         found = main.relevant_memories("தமிழ் விளக்கம்")
         assert len(found) == 1
         assert "தமிழ்" in found[0]["content"]
+
+
+def test_lan_clients_require_pairing_token(monkeypatch, tmp_path):
+    monkeypatch.setattr(main, "DB_PATH", tmp_path / "test.sqlite3")
+    monkeypatch.setattr(main, "API_TOKEN", "test-pairing-token")
+    remote = TestClient(main.app, client=("192.168.1.25", 12345))
+    denied = remote.get("/health")
+    assert denied.status_code == 401
+    allowed = remote.get("/health", headers={"X-Tiger-Token": "test-pairing-token"})
+    assert allowed.status_code == 200
+    preflight = remote.options(
+        "/api/chat",
+        headers={
+            "Origin": "https://localhost",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,x-tiger-token",
+        },
+    )
+    assert preflight.status_code == 200
