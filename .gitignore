@@ -25,3 +25,11 @@ models/
 node_modules/
 dist/
 build/
+
+# Desktop / Android packaging
+apps/desktop/node_modules/
+apps/desktop/dist/
+apps/desktop/resources/bin/
+apps/web/android/
+apps/web/.gradle/
+*.spec
