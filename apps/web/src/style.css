@@ -108,3 +108,13 @@ h1 em{font-style:normal;color:#83b8f5}
 .memory-item p{font-size:11px;line-height:1.55;color:#c8d4e4;margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .memory-item button{border:1px solid #594047;background:#261b25;color:#dca6a9;border-radius:6px;padding:5px 8px;font-size:9px;flex-shrink:0}
 .memory-item button:hover{background:#3b242d}
+
+.memory-optin{display:flex;align-items:center;gap:7px;margin:9px 2px 1px;color:#7f91aa;font-size:9px}
+.memory-optin input{accent-color:#72a8e4}
+.memory-actions{display:flex;gap:6px;flex-shrink:0}
+.memory-actions button,.cancel-edit{border:1px solid #344964;background:#19283d;color:#b9cde6;border-radius:6px;padding:5px 8px;font-size:9px}
+.memory-actions button:hover,.cancel-edit:hover{background:#263b58}
+.memory-actions button:last-child{border-color:#594047;background:#261b25;color:#dca6a9}
+.memory-edit-form{width:100%;display:flex;flex-direction:column;gap:6px}
+.memory-edit-form textarea{width:100%;resize:vertical;padding:9px;border:1px solid #354761;border-radius:8px;background:#0e1725;color:#eaf1fb;font:11px Arial,sans-serif}
+@media(max-width:560px){.agent-controls{align-items:stretch}.agent-controls label{flex:1;min-width:110px}.agent-controls .send-button{margin-left:0}.feature-panel{padding:13px}.feature-tag{font-size:7px}}
