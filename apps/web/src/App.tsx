@@ -85,7 +85,7 @@ export default function App() {
 
   const refreshMemories = async () => {
     try {
-      const response = await fetch("/api/memories");
+      const response = await apiFetch("/api/memories");
       if (!response.ok) throw new Error("Could not load memories");
       const data = await response.json();
       setMemories(data.memories || []);
@@ -96,7 +96,7 @@ export default function App() {
 
   const refreshConversations = async (query = conversationQuery) => {
     try {
-      const response = await fetch("/api/conversations?q=" + encodeURIComponent(query));
+      const response = await apiFetch("/api/conversations?q=" + encodeURIComponent(query));
       if (!response.ok) throw new Error("Could not load conversations");
       const data = await response.json();
       setConversations(data.conversations || []);
@@ -105,7 +105,7 @@ export default function App() {
 
   const loadConversation = async (id: string) => {
     try {
-      const response = await fetch("/api/conversations/" + encodeURIComponent(id));
+      const response = await apiFetch("/api/conversations/" + encodeURIComponent(id));
       if (!response.ok) throw new Error("Could not load conversation");
       const data = await response.json();
       setConversationId(id);
@@ -117,7 +117,7 @@ export default function App() {
   const exportData = async () => {
     setDataBusy(true);
     try {
-      const response = await fetch("/api/data/export");
+      const response = await apiFetch("/api/data/export");
       if (!response.ok) throw new Error("Export failed");
       const data = await response.json();
       const url = window.URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
@@ -131,7 +131,7 @@ export default function App() {
     if (!window.confirm("Permanently delete all TIGER conversations, memories and agent history from this device? This cannot be undone.")) return;
     setDataBusy(true);
     try {
-      const response = await fetch("/api/data", { method: "DELETE" });
+      const response = await apiFetch("/api/data", { method: "DELETE" });
       if (!response.ok) throw new Error("Data deletion failed");
       setMessages([{ role: "assistant", content: "Local TIGER data has been deleted." }]);
       setMemories([]); setConversations([]); setAgentResult(null);
@@ -144,7 +144,7 @@ export default function App() {
     if (!content || memoryBusy) return;
     setMemoryBusy(true);
     try {
-      const response = await fetch("/api/memories", {
+      const response = await apiFetch("/api/memories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, category: memoryCategory }),
@@ -170,7 +170,7 @@ export default function App() {
     event.preventDefault();
     if (!editingMemoryId || !editingMemoryContent.trim()) return;
     try {
-      const response = await fetch("/api/memories/" + encodeURIComponent(editingMemoryId), {
+      const response = await apiFetch("/api/memories/" + encodeURIComponent(editingMemoryId), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editingMemoryContent, category: editingMemoryCategory }),
@@ -186,7 +186,7 @@ export default function App() {
 
   const deleteMemory = async (id: string) => {
     try {
-      const response = await fetch("/api/memories/" + encodeURIComponent(id), { method: "DELETE" });
+      const response = await apiFetch("/api/memories/" + encodeURIComponent(id), { method: "DELETE" });
       if (!response.ok) throw new Error("Could not delete memory");
       setMemories(current => current.filter(memory => memory.id !== id));
     } catch (error) {
@@ -202,7 +202,7 @@ export default function App() {
     setAgentError("");
     setAgentResult(null);
     try {
-      const response = await fetch("/api/agents/run", {
+      const response = await apiFetch("/api/agents/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -239,7 +239,7 @@ export default function App() {
     setBusy(true);
     setNotice("Thinking with your local model…");
     try {
-      const response = await fetch("/api/chat", {
+      const response = await apiFetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
