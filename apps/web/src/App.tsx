@@ -22,6 +22,15 @@ const newConversationId = () => {
   return created;
 };
 
+const apiFetch = (path: string, init: RequestInit = {}) => {
+  const configuredBase = window.localStorage.getItem("tiger.api_base_url") || "";
+  const base = configuredBase.replace(/\\/+$/, "") || (window.location.protocol === "file:" ? "http://127.0.0.1:8765" : "");
+  const headers = new Headers(init.headers || {});
+  const token = window.localStorage.getItem("tiger.api_token") || "";
+  if (token) headers.set("X-Tiger-Token", token);
+  return fetch(base + path, { ...init, headers });
+};
+
 export default function App() {
   const [conversationId, setConversationId] = useState(newConversationId);
   const [messages, setMessages] = useState<Message[]>([
@@ -48,12 +57,14 @@ export default function App() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationQuery, setConversationQuery] = useState("");
   const [dataBusy, setDataBusy] = useState(false);
+  const [apiBaseUrl, setApiBaseUrl] = useState(() => window.localStorage.getItem("tiger.api_base_url") || "");
+  const [apiToken, setApiToken] = useState(() => window.localStorage.getItem("tiger.api_token") || "");
 
   useEffect(() => {
     let active = true;
     const refresh = async () => {
       try {
-        const response = await fetch("/api/providers");
+        const response = await apiFetch("/api/providers");
         if (!response.ok) throw new Error("Local API returned " + response.status);
         const data = (await response.json()) as ProviderInfo;
         if (!active) return;
@@ -321,6 +332,16 @@ export default function App() {
             <div className="capability"><Workflow size={18} /><b>Agent team</b><span>Planner · specialist · reviewer</span></div>
             <div className="capability"><Mic size={18} /><b>Natural voice</b><span>Planned for a later milestone</span></div>
           </div>
+
+          <section className="feature-panel">
+            <div className="feature-title"><div><span className="panel-icon"><Wifi size={16} /></span><b>Device connection</b></div><span className="feature-tag">LOCAL NETWORK ONLY</span></div>
+            <p className="feature-description">Desktop uses its local core automatically. On Android, enter your Windows PC address and the pairing token shown by the Windows launcher. Keep both devices on a trusted Wi-Fi network.</p>
+            <div className="device-connect-form">
+              <label>Windows TIGER Core URL<input value={apiBaseUrl} onChange={event => setApiBaseUrl(event.target.value)} placeholder="http://192.168.1.10:8765" /></label>
+              <label>Phone pairing token<input type="password" value={apiToken} onChange={event => setApiToken(event.target.value)} placeholder="Paste the token from your Windows PC" autoComplete="off" /></label>
+              <div className="data-actions"><button type="button" className="send-button" onClick={() => { window.localStorage.setItem("tiger.api_base_url", apiBaseUrl.trim().replace(/\\/+$/, "")); window.localStorage.setItem("tiger.api_token", apiToken.trim()); window.location.reload(); }}>Save connection</button><span className="connection-hint">Empty URL uses this device's local core</span></div>
+            </div>
+          </section>
 
           <section className="feature-panel">
             <div className="feature-title"><div><span className="panel-icon"><MessageCircle size={16} /></span><b>Conversation history</b></div><span className="feature-tag">ON THIS DEVICE</span></div>
