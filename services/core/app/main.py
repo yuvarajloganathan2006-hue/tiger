@@ -99,6 +99,8 @@ app.add_middleware(
 @app.middleware("http")
 async def protect_lan_clients(request: Request, call_next):
     """Remote/LAN access is denied unless the owner configured a pairing token."""
+    if request.method == "OPTIONS":
+        return await call_next(request)
     client_host = request.client.host if request.client else ""
     is_loopback = client_host in {"127.0.0.1", "::1", "localhost", "testclient"}
     if not is_loopback:
