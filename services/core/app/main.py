@@ -10,7 +10,7 @@ from typing import Literal
 
 import httpx
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 APP_NAME = "TIGER Local Core"
@@ -97,6 +97,14 @@ class ChatRequest(BaseModel):
     allow_cloud_fallback: bool = False
     use_saved_memories: bool = True
 
+    @field_validator("message")
+    @classmethod
+    def clean_message(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("message cannot be blank")
+        return value
+
 
 class ChatResponse(BaseModel):
     conversation_id: str
@@ -110,10 +118,26 @@ class MemoryCreate(BaseModel):
     content: str = Field(min_length=1, max_length=4_000)
     category: str = Field(default="general", min_length=1, max_length=40)
 
+    @field_validator("content", "category")
+    @classmethod
+    def clean_fields(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("field cannot be blank")
+        return value
+
 
 class MemoryUpdate(BaseModel):
     content: str = Field(min_length=1, max_length=4_000)
     category: str = Field(default="general", min_length=1, max_length=40)
+
+    @field_validator("content", "category")
+    @classmethod
+    def clean_fields(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("field cannot be blank")
+        return value
 
 
 class AgentRequest(BaseModel):
@@ -122,6 +146,14 @@ class AgentRequest(BaseModel):
     mode: Literal["single", "team"] = "single"
     allow_cloud_fallback: bool = False
     use_saved_memories: bool = True
+
+    @field_validator("objective")
+    @classmethod
+    def clean_objective(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("objective cannot be blank")
+        return value
 
 
 def get_recent_messages(conversation_id: str, limit: int = 20) -> list[dict[str, str]]:
