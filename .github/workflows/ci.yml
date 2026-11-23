@@ -36,3 +36,22 @@ jobs:
       - name: Build web interface
         working-directory: apps/web
         run: npm run build
+
+  windows-script-validation:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse Windows PowerShell scripts
+        shell: pwsh
+        run: |
+          $files = @("scripts/setup-windows.ps1", "scripts/start-tiger.ps1")
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $file), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error $_ }
+              exit 1
+            }
+            Write-Host "PowerShell syntax OK: $file"
+          }
