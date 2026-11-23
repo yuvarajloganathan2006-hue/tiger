@@ -76,6 +76,8 @@ jobs:
           python -m PyInstaller --noconfirm --clean --onefile --name tiger-core --paths services/core --hidden-import app.main --collect-all uvicorn --collect-all fastapi --collect-all starlette --collect-all pydantic --collect-all pydantic_core --collect-all httpx services/core/launcher.py
           New-Item -ItemType Directory -Force apps/desktop/resources/bin | Out-Null
           Copy-Item dist/tiger-core.exe apps/desktop/resources/bin/tiger-core.exe
+      - name: Validate desktop shell JavaScript
+        run: node --check apps/desktop/main.cjs
       - name: Build shared web UI
         working-directory: apps/web
         run: |
