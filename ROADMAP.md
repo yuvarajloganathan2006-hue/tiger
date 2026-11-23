@@ -27,19 +27,19 @@ Progress is not claimed until implementation, automated tests, and manual verifi
 - [ ] Provider-independent error normalization
 
 ## M3 — Companion memory
-- [ ] User-controlled memory entries
-- [ ] Explicit save / edit / forget controls
+- [x] User-controlled memory entries
+- [x] Explicit save / edit / forget API (UI supports save and delete)
 - [ ] Conversation search
 - [ ] SQLite full-text search; optional embeddings
 - [ ] Export and delete all user data
 - [ ] Memory provenance and correction
 
 ## M4 — Multi-agent runtime
-- [ ] Coordinator / supervisor
-- [ ] Planner and task decomposition
-- [ ] Researcher, coder, reviewer, organizer agents
-- [ ] Typed agent messages and bounded budgets
-- [ ] Task state, logs, retry, cancellation
+- [x] Bounded coordinator workflow (planner → specialist → reviewer)
+- [x] Planner and task decomposition
+- [x] Researcher, developer, reviewer, organizer agent roles
+- [x] Typed agent request/response and bounded input / stage count
+- [x] Agent run status and result history (retry/cancellation pending)
 - [ ] Human approval for external and destructive actions
 - [ ] Agent evaluation tests and prompt-injection defenses
 
