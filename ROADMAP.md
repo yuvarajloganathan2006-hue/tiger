@@ -1,6 +1,6 @@
 # TIGER Roadmap
 
-Progress is not claimed until implementation, automated tests, and manual verification are complete. The initial backend and web UI are committed; GitHub Actions passed the API tests and frontend build on 2026-11-23. End-to-end testing with Ollama on a local Windows/macOS/Linux machine remains pending.
+Progress is not claimed until implementation, automated tests, and manual verification are complete. The fully-local backend/data-controls milestone passes automated API tests and the web production build on 2026-11-23. Real Ollama testing on Windows 11 remains pending.
 
 ## M0 — Project foundation
 - [x] Product principles and target architecture documented
@@ -10,28 +10,29 @@ Progress is not claimed until implementation, automated tests, and manual verifi
 - [ ] Threat model reviewed
 
 ## M1 — Working local core
-- [x] FastAPI service configured to bind to 127.0.0.1 in local run instructions
+- [x] FastAPI service configured to bind to 127.0.0.1 in Windows launch script
 - [x] Ollama health check and model discovery
 - [x] Local chat endpoint using Ollama chat API
-- [ ] SQLite persistence and schema migrations
-- [x] Basic React chat interface
+- [x] SQLite persistence for messages, memories and agent runs (schema version marker; migration framework remains)
+- [x] React chat and agent interface
 - [x] Offline unit tests with mocked provider
-- [x] Clear setup guide for Windows
+- [x] Windows 11 setup and launch scripts
+- [ ] Manual Windows 11 + real Ollama end-to-end verification
 
-## M2 — Provider routing
-- [ ] Local provider priority and timeout handling
-- [ ] Optional cloud providers, opt-in only
-- [ ] Per-provider health and model settings
-- [ ] Context disclosure before cloud transmission
-- [ ] No silent cloud fallback for private context
-- [ ] Provider-independent error normalization
+## M2 — Local model runtime
+- [x] Ollama-only inference path
+- [x] Fail-closed behavior when the local model is unavailable
+- [x] Local model discovery and provider diagnostics
+- [ ] Model selection and runtime settings UI
+- [ ] Streaming responses and cancellation
 
 ## M3 — Companion memory
 - [x] User-controlled memory entries
 - [x] Explicit save / edit / forget API (UI supports save and delete)
-- [ ] Conversation search
-- [ ] SQLite full-text search; optional embeddings
-- [ ] Export and delete all user data
+- [x] Local conversation search (SQLite text matching)
+- [ ] SQLite FTS5 search; optional local embeddings
+- [x] JSON export and delete all user data
+- [x] Individual conversation deletion
 - [ ] Memory provenance and correction
 
 ## M4 — Multi-agent runtime
@@ -60,7 +61,7 @@ Progress is not claimed until implementation, automated tests, and manual verifi
 - [ ] Camera/screen access disabled until user opt-in
 
 ## M7 — Desktop release readiness
-- [ ] Windows installer
+- [ ] Windows desktop shell and installer
 - [ ] macOS and Linux builds
 - [ ] Secure updates and signed release process
 - [ ] Backup/restore and crash recovery
