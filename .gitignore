@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Local data and model files
+.tiger/
+*.sqlite3
+*.db
+models/
+*.gguf
+
+# Frontend / desktop builds (future)
+node_modules/
+dist/
+build/
