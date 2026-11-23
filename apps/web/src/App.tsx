@@ -12,7 +12,6 @@ type AgentResult = { run_id: string; result: string; stages: AgentStage[]; provi
 type Conversation = { conversation_id: string; updated_at: string; message_count: number; last_user_message: string | null };
 type ProviderInfo = {
   local?: { healthy: boolean; selected_model: string; available_models: string[]; error?: string | null };
-  online_fallback?: { enabled: boolean; configured: boolean; model?: string | null };
 };
 
 const newConversationId = () => {
@@ -31,7 +30,6 @@ export default function App() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<ProviderInfo | null>(null);
-  const [allowCloudFallback, setAllowCloudFallback] = useState(false);
   const [useSavedMemories, setUseSavedMemories] = useState(true);
   const [notice, setNotice] = useState("Checking your local AI engine…");
   const [memories, setMemories] = useState<Memory[]>([]);
@@ -44,7 +42,6 @@ export default function App() {
   const [agentObjective, setAgentObjective] = useState("");
   const [agentRole, setAgentRole] = useState("planner");
   const [agentMode, setAgentMode] = useState("team");
-  const [agentCloud, setAgentCloud] = useState(false);
   const [agentBusy, setAgentBusy] = useState(false);
   const [agentResult, setAgentResult] = useState<AgentResult | null>(null);
   const [agentError, setAgentError] = useState("");
@@ -201,7 +198,6 @@ export default function App() {
           objective,
           agent: agentRole,
           mode: agentMode,
-          allow_cloud_fallback: agentCloud,
           use_saved_memories: true,
         }),
       });
@@ -212,7 +208,6 @@ export default function App() {
       setAgentError(error instanceof Error ? error.message : "Agent task failed");
     } finally {
       setAgentBusy(false);
-      setAgentCloud(false);
     }
   };
 
@@ -255,7 +250,7 @@ export default function App() {
       const message = error instanceof Error ? error.message : "Unexpected error";
       setMessages(current => [...current, {
         role: "assistant",
-        content: "I couldn’t reach the local model. " + message + ". No cloud fallback was requested, so your message was not sent to an online model.",
+        content: "I couldn’t reach the local model. " + message + ". TIGER is fully-local, so your message was not sent to an online model.",
       }]);
       setNotice("Local model needs attention");
     } finally {
@@ -276,7 +271,7 @@ export default function App() {
         <div className="nav-item muted"><FolderOpen size={17} /> Knowledge <small>PLANNED</small></div>
         <div className="nav-item muted"><Activity size={17} /> Tasks & routines <small>PLANNED</small></div>
         <div className="nav-spacer" />
-        <div className="privacy-card"><ShieldCheck size={18} /><div><b>Private by default</b><span>Local model first. Cloud use requires opt-in.</span></div></div>
+        <div className="privacy-card"><ShieldCheck size={18} /><div><b>Private by default</b><span>No online AI provider is enabled.</span></div></div>
         <div className="profile"><div className="avatar">Y</div><div><b>Your workspace</b><span>Personal instance</span></div><Settings2 size={17} /></div>
       </aside>
 
@@ -319,12 +314,12 @@ export default function App() {
             <form className="composer" onSubmit={sendMessage}>
               <textarea value={input} onChange={event => setInput(event.target.value)} placeholder="Share an idea, ask a question, or describe what you want to do…" rows={2} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />
               {status?.online_fallback?.enabled && status.online_fallback.configured && (<label className="cloud-optin"><input type="checkbox" checked={allowCloudFallback} onChange={event => setAllowCloudFallback(event.target.checked)} /> Allow online fallback for this message. Recent conversation context may be sent to {status.online_fallback.model}.</label>)}
-              <div className="composer-bottom"><div className="composer-hints"><LockKeyhole size={13} /> Local-first <span>·</span> <Mic size={13} /> Voice coming later</div><button className="send-button" type="submit" disabled={busy || !input.trim()}><Send size={16} /> Send</button></div>
+              <div className="composer-bottom"><div className="composer-hints"><LockKeyhole size={13} /> Fully local · No cloud routing</div><button className="send-button" type="submit" disabled={busy || !input.trim()}><Send size={16} /> Send</button></div>
               <label className="memory-optin"><input type="checkbox" checked={useSavedMemories} onChange={event => setUseSavedMemories(event.target.checked)} /> Use relevant saved memories in this chat</label>
             </form>
           </div>
 
-          <div className="bottom-note"><Check size={14} /> Your messages stay on this device when using the local model.</div>
+          <div className="bottom-note"><Check size={14} /> AI inference runs locally. No online AI provider is used.</div>
           <div className="capability-grid">
             <div className="capability"><BrainCircuit size={18} /><b>Saved memory</b><span>{memories.length} user-approved entries</span></div>
             <div className="capability"><Workflow size={18} /><b>Agent team</b><span>Planner · specialist · reviewer</span></div>
@@ -348,7 +343,6 @@ export default function App() {
                 <label>Workflow<select value={agentMode} onChange={event => setAgentMode(event.target.value)}><option value="team">Full team (3 stages)</option><option value="single">One specialist</option></select></label>
                 <button className="send-button" type="submit" disabled={agentBusy || !agentObjective.trim()}>{agentBusy ? "Working…" : "Run agent"} <Send size={14} /></button>
               </div>
-              {status?.online_fallback?.enabled && status.online_fallback.configured && <label className="cloud-optin"><input type="checkbox" checked={agentCloud} onChange={event => setAgentCloud(event.target.checked)} /> Permit online fallback for this task. The objective, saved memories and intermediate outputs may be sent to {status.online_fallback.model}.</label>}
             </form>
             {agentError && <div className="error-note">{agentError}</div>}
             {agentResult && <div className="agent-output"><div className="result-meta">COMPLETED · {agentResult.provider} · {agentResult.model}</div>{agentResult.stages.map((stage, index) => <div className="agent-stage" key={index}><b>{index + 1}. {stage.agent}</b><p>{stage.result}</p></div>)}</div>}
