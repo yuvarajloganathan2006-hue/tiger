@@ -1,6 +1,6 @@
 # TIGER Roadmap
 
-Progress is not claimed until implementation, automated tests, and manual verification are complete. The fully-local backend/data-controls milestone passes automated API tests and the web production build on 2026-11-23. Real Ollama testing on Windows 11 remains pending.
+Progress is not claimed until implementation, automated tests, and manual verification are complete. Windows desktop and Android APK packaging workflows are committed; real installer/APK builds and device installation still require GitHub Actions execution and hands-on verification. The fully-local backend/data-controls milestone passes automated API tests and the web production build on 2026-11-23. Real Ollama testing on Windows 11 remains pending.
 
 ## M0 — Project foundation
 - [x] Product principles and target architecture documented
@@ -61,10 +61,25 @@ Progress is not claimed until implementation, automated tests, and manual verifi
 - [ ] Optional 3D avatar / VRM viewer
 - [ ] Camera/screen access disabled until user opt-in
 
-## M7 — Desktop release readiness
-- [ ] Windows desktop shell and installer
-- [ ] macOS and Linux builds
-- [ ] Secure updates and signed release process
+## M7 — Windows desktop packaging
+- [x] Electron Windows desktop shell
+- [x] Bundle FastAPI core as a Windows executable
+- [x] NSIS installer build workflow
+- [ ] Install and run the generated installer on a real Windows 11 machine
+- [ ] Code signing and secure updates
 - [ ] Backup/restore and crash recovery
+
+## M8 — Android mobile companion
+- [x] Capacitor Android shell using the shared React UI
+- [x] Configurable Windows Core URL and pairing-token UI
+- [x] Token-gated LAN API access
+- [x] GitHub Actions APK build and release attachment workflow
+- [ ] Build and install APK on a real Android phone
+- [ ] Validate Wi-Fi pairing and reconnect behavior on-device
+- [ ] TLS pairing and signed production APK
+- [ ] Standalone Android local inference (separate on-device runtime; not part of this companion build)
+
+## M9 — Cross-platform release readiness
+- [ ] macOS and Linux desktop builds
 - [ ] Accessibility and performance audit
 - [ ] Security review and documented limitations
