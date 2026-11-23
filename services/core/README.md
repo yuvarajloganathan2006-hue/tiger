@@ -1,6 +1,6 @@
 # TIGER Core API — first runnable milestone
 
-This service provides local Ollama chat, provider diagnostics, and SQLite conversation history. It is a foundation, not the finished desktop companion or multi-agent runtime.
+This service provides local Ollama chat, provider diagnostics, SQLite conversation history, user-managed memories, and a bounded text-only agent workflow. It is a foundation, not the finished desktop companion or autonomous computer-control runtime.
 
 ## Requirements
 - Python 3.11+
@@ -38,6 +38,10 @@ Open http://127.0.0.1:5173. The Vite development server proxies API requests to 
 - GET /api/providers — Ollama health and model list, plus fallback configuration status
 - POST /api/chat — JSON body with message, optional conversation_id and allow_cloud_fallback
 - GET /api/conversations/{conversation_id} — locally stored messages
+- GET/POST /api/memories — list and explicitly save user-approved memories
+- PUT/DELETE /api/memories/{memory_id} — edit or delete a saved memory
+- POST /api/agents/run — run one specialist or a planner → specialist → reviewer team
+- GET /api/agents/runs — view recent agent run history
 
 ## Optional online fallback
 By default, online fallback is disabled. Configure TIGER_CLOUD_FALLBACK_ENABLED=true, TIGER_CLOUD_BASE_URL, TIGER_CLOUD_MODEL and TIGER_CLOUD_API_KEY in your environment. Each request also requires allow_cloud_fallback=true. The web interface shows a consent checkbox only after a provider is configured. This is a generic OpenAI-compatible endpoint; configure a provider whose current terms and free-tier rules you have checked. Provider availability and free quotas can change.
@@ -47,6 +51,6 @@ When fallback is allowed, the recent conversation history (up to 20 messages) is
 ## Current limitations
 - No authentication; do not bind this API beyond localhost.
 - The frontend is a browser UI, not a packaged desktop app.
-- No voice, avatar, autonomous agents, task scheduler, document RAG, or computer-control tools yet.
-- SQLite stores conversation text unencrypted in your local user data folder.
+- No voice, avatar, task scheduler, document RAG, or computer-control tools yet. Agent orchestration is currently text-only and does not call tools.
+- SQLite stores conversation and saved-memory text unencrypted in your local user data folder.
 - No file, browser, command, microphone, or screen-control capability is implemented.
