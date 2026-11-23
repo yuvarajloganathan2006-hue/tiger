@@ -6,17 +6,17 @@ Progress is not claimed until implementation, automated tests, and manual verifi
 - [x] Product principles and target architecture documented
 - [x] Local-first and cloud-consent policy documented
 - [x] Reference projects and license cautions documented
-- [ ] CI workflow and code quality gates
+- [x] CI workflow and code quality gates (Python tests + frontend production build)
 - [ ] Threat model reviewed
 
 ## M1 — Working local core
-- [ ] FastAPI service bound to 127.0.0.1 only
-- [ ] Ollama health check and model discovery
-- [ ] Local chat endpoint using Ollama chat API
+- [x] FastAPI service configured to bind to 127.0.0.1 in local run instructions
+- [x] Ollama health check and model discovery
+- [x] Local chat endpoint using Ollama chat API
 - [ ] SQLite persistence and schema migrations
-- [ ] Basic React chat interface
-- [ ] Offline unit tests with mocked provider
-- [ ] Clear setup guide for Windows
+- [x] Basic React chat interface
+- [x] Offline unit tests with mocked provider
+- [x] Clear setup guide for Windows
 
 ## M2 — Provider routing
 - [ ] Local provider priority and timeout handling
