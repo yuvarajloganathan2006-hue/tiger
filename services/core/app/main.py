@@ -16,10 +16,6 @@ from pydantic import BaseModel, Field, field_validator
 APP_NAME = "TIGER Local Core"
 OLLAMA_URL = os.getenv("TIGER_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 LOCAL_MODEL = os.getenv("TIGER_LOCAL_MODEL", "qwen3:8b")
-CLOUD_ENABLED = os.getenv("TIGER_CLOUD_FALLBACK_ENABLED", "false").lower() == "true"
-CLOUD_BASE_URL = os.getenv("TIGER_CLOUD_BASE_URL", "").rstrip("/")
-CLOUD_MODEL = os.getenv("TIGER_CLOUD_MODEL", "")
-CLOUD_API_KEY = os.getenv("TIGER_CLOUD_API_KEY", "")
 DB_PATH = Path(os.getenv("TIGER_DB_PATH") or (Path.home() / ".tiger" / "tiger.sqlite3"))
 
 AGENT_PROMPTS = {
@@ -67,6 +63,7 @@ def init_db() -> None:
             )
         """)
         db.execute("CREATE INDEX IF NOT EXISTS idx_memories_category ON memories(category)")
+        db.execute("PRAGMA user_version = 1")
         db.execute("""
             CREATE TABLE IF NOT EXISTS agent_runs (
                 id TEXT PRIMARY KEY,
@@ -229,51 +226,24 @@ async def ollama_chat(messages: list[dict[str, str]]) -> str:
     return content.strip()
 
 
-async def online_chat(messages: list[dict[str, str]]) -> str:
-    if not CLOUD_ENABLED:
-        raise RuntimeError("Online fallback is disabled by server configuration.")
-    if not CLOUD_BASE_URL or not CLOUD_MODEL or not CLOUD_API_KEY:
-        raise RuntimeError("Online fallback is missing its base URL, model, or API key.")
-    headers = {"Authorization": f"Bearer {CLOUD_API_KEY}"}
-    payload = {"model": CLOUD_MODEL, "messages": messages, "stream": False}
-    async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, connect=10.0)) as client:
-        response = await client.post(
-            f"{CLOUD_BASE_URL}/chat/completions",
-            json=payload,
-            headers=headers,
-        )
-        response.raise_for_status()
-        data = response.json()
-    content = data.get("choices", [{}])[0].get("message", {}).get("content")
-    if not isinstance(content, str) or not content.strip():
-        raise RuntimeError("Online provider returned an empty or invalid message.")
-    return content.strip()
-
-
-async def generate(messages: list[dict[str, str]], allow_cloud: bool) -> tuple[str, str, str]:
+async def generate(messages: list[dict[str, str]], allow_cloud: bool = False) -> tuple[str, str, str]:
+    """Strictly local inference. TIGER never transmits prompts to a cloud provider."""
     try:
         return await ollama_chat(messages), "ollama", LOCAL_MODEL
     except (httpx.HTTPError, RuntimeError, ValueError) as local_error:
-        if not (CLOUD_ENABLED and allow_cloud):
-            raise HTTPException(
-                status_code=503,
-                detail=(
-                    "Local model unavailable. No data was sent online. "
-                    f"Local provider error: {local_error}"
-                ),
-            ) from local_error
-        try:
-            return await online_chat(messages), "online", CLOUD_MODEL
-        except (httpx.HTTPError, RuntimeError, ValueError) as online_error:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Both local and permitted online providers failed: {online_error}",
-            ) from online_error
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "TIGER is configured for fully-local operation. The local model is unavailable; "
+                "no prompt, memory, or conversation data was sent online. "
+                f"Local provider error: {local_error}"
+            ),
+        ) from local_error
 
 
 @app.get("/health")
 async def health() -> dict[str, str]:
-    return {"status": "ok", "app": APP_NAME, "version": "0.2.0"}
+    return {"status": "ok", "app": APP_NAME, "version": "0.3.0", "mode": "fully-local"}
 
 
 @app.get("/api/providers")
@@ -304,10 +274,11 @@ async def providers() -> dict:
             "error": local_error,
         },
         "online_fallback": {
-            "configured": bool(CLOUD_ENABLED and CLOUD_BASE_URL and CLOUD_MODEL and CLOUD_API_KEY),
-            "enabled": CLOUD_ENABLED,
-            "model": CLOUD_MODEL or None,
-            "requires_request_consent": True,
+            "configured": False,
+            "enabled": False,
+            "model": None,
+            "requires_request_consent": False,
+            "policy": "disabled: fully-local mode",
         },
     }
 
@@ -333,6 +304,69 @@ async def chat(request: ChatRequest) -> ChatResponse:
         model=model,
         memories_used=len(used),
     )
+
+
+@app.get("/api/conversations")
+async def conversations(q: str = "", limit: int = 50) -> dict:
+    bounded = max(1, min(limit, 100))
+    query = q.strip()[:200]
+    with connect_db() as db:
+        if query:
+            rows = db.execute(
+                """SELECT conversation_id, MAX(created_at) AS updated_at,
+                          COUNT(*) AS message_count,
+                          MAX(CASE WHEN role='user' THEN content END) AS last_user_message
+                   FROM messages
+                   WHERE conversation_id IN (
+                       SELECT DISTINCT conversation_id FROM messages WHERE content LIKE ?
+                   )
+                   GROUP BY conversation_id ORDER BY updated_at DESC LIMIT ?""",
+                (f"%{query}%", bounded),
+            ).fetchall()
+        else:
+            rows = db.execute(
+                """SELECT conversation_id, MAX(created_at) AS updated_at,
+                          COUNT(*) AS message_count,
+                          MAX(CASE WHEN role='user' THEN content END) AS last_user_message
+                   FROM messages GROUP BY conversation_id ORDER BY updated_at DESC LIMIT ?""",
+                (bounded,),
+            ).fetchall()
+    return {"conversations": [dict(row) for row in rows]}
+
+
+@app.delete("/api/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str) -> dict:
+    if len(conversation_id) > 128:
+        raise HTTPException(status_code=400, detail="conversation_id is too long")
+    with connect_db() as db:
+        result = db.execute("DELETE FROM messages WHERE conversation_id = ?", (conversation_id,))
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {"deleted": True, "conversation_id": conversation_id}
+
+
+@app.get("/api/data/export")
+async def export_data() -> dict:
+    with connect_db() as db:
+        messages = [dict(row) for row in db.execute(
+            "SELECT conversation_id, role, content, provider, model, created_at FROM messages ORDER BY id"
+        ).fetchall()]
+        memories = [dict(row) for row in db.execute(
+            "SELECT id, content, category, source, created_at, updated_at FROM memories ORDER BY updated_at DESC"
+        ).fetchall()]
+        runs = [dict(row) for row in db.execute(
+            "SELECT id, objective, agent, mode, status, result, provider, model, created_at FROM agent_runs ORDER BY created_at DESC"
+        ).fetchall()]
+    return {"format_version": 1, "mode": "fully-local", "messages": messages, "memories": memories, "agent_runs": runs}
+
+
+@app.delete("/api/data")
+async def delete_all_data() -> dict:
+    with connect_db() as db:
+        db.execute("DELETE FROM messages")
+        db.execute("DELETE FROM memories")
+        db.execute("DELETE FROM agent_runs")
+    return {"deleted": True, "scope": ["messages", "memories", "agent_runs"]}
 
 
 @app.get("/api/conversations/{conversation_id}")
