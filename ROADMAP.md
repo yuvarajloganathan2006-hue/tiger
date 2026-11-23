@@ -28,6 +28,7 @@ Progress is not claimed until implementation, automated tests, and manual verifi
 
 ## M3 — Companion memory
 - [x] User-controlled memory entries
+- [x] Unicode-aware local keyword retrieval
 - [x] Explicit save / edit / forget API (UI supports save and delete)
 - [x] Local conversation search (SQLite text matching)
 - [ ] SQLite FTS5 search; optional local embeddings
