@@ -223,8 +223,6 @@ export default function App() {
     event.preventDefault();
     const text = input.trim();
     if (!text || busy) return;
-    const useCloudFallback = allowCloudFallback;
-    setAllowCloudFallback(false);
     setInput("");
     setMessages(current => [...current, { role: "user", content: text }]);
     setBusy(true);
@@ -236,7 +234,6 @@ export default function App() {
         body: JSON.stringify({
           message: text,
           conversation_id: conversationId,
-          allow_cloud_fallback: useCloudFallback,
           use_saved_memories: useSavedMemories,
         }),
       });
@@ -313,7 +310,6 @@ export default function App() {
             </div>
             <form className="composer" onSubmit={sendMessage}>
               <textarea value={input} onChange={event => setInput(event.target.value)} placeholder="Share an idea, ask a question, or describe what you want to do…" rows={2} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />
-              {status?.online_fallback?.enabled && status.online_fallback.configured && (<label className="cloud-optin"><input type="checkbox" checked={allowCloudFallback} onChange={event => setAllowCloudFallback(event.target.checked)} /> Allow online fallback for this message. Recent conversation context may be sent to {status.online_fallback.model}.</label>)}
               <div className="composer-bottom"><div className="composer-hints"><LockKeyhole size={13} /> Fully local · No cloud routing</div><button className="send-button" type="submit" disabled={busy || !input.trim()}><Send size={16} /> Send</button></div>
               <label className="memory-optin"><input type="checkbox" checked={useSavedMemories} onChange={event => setUseSavedMemories(event.target.checked)} /> Use relevant saved memories in this chat</label>
             </form>
